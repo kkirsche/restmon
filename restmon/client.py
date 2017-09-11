@@ -49,15 +49,7 @@ class RestmonClient(object):
 
     def setup_api_client(self):
         api_client = Session()
-        adapter = HTTPAdapter(
-            max_retries=Retry(
-                total=10,
-                backoff_factor=3,
-                status_forcelist=[404, 408, 409, 500, 502, 503, 504]),
-            pool_maxsize=20)
         api_client.auth = self.auth
-        api_client.mount(self.base_uri, adapter)
-
         return api_client
 
     def run(self):
@@ -88,7 +80,9 @@ class RestmonClient(object):
                             start=start), 'end_time={end}'.format(end=end),
                         'rtt={rtt}'.format(rtt=rtt), 'response={resp}'.format(
                             resp=dumps(j)), 'endpoint={endpoint}'.format(
-                                endpoint=endpoint)
+                                endpoint=endpoint),
+                        'status_code={status_code}'.format(
+                            status_code=r.status_code)
                     ]
                     flat_j = flatten(j)
                     for k, v in list(flat_j.items()):
@@ -99,13 +93,14 @@ class RestmonClient(object):
                         'environment={env} msg=received response '
                         'application=restmon time_unit=sec  start_time={start} '
                         'endpoint={endpoint} end_time={end} rtt={rtt} '
-                        'response={resp}').format(
+                        'response={resp} status_code={status_code}').format(
                             env=self.environment,
                             rtt=rtt,
                             endpoint=endpoint,
                             resp=r.text,
                             start=start,
-                            end=end))
+                            end=end,
+                            status_code=r.status_code))
             except Exception as e:
                 end = time()
                 rtt = end - start
