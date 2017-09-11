@@ -13,6 +13,8 @@ from raven import fetch_package_version
 from time import time
 from json import dumps
 from flatten_json import flatten
+from urlparse import urlparse
+from socket import gethostbyname
 
 
 class RestmonClient(object):
@@ -52,10 +54,43 @@ class RestmonClient(object):
         api_client.auth = self.auth
         return api_client
 
-    def run(self):
+    def _dns_resolution(self, uri):
+        self.logger.debug(('application=dnsmon environment={env} '
+                           'msg=start MonitorClient._dns_resolution').format(
+                               env=self.environment))
+        parsed = urlparse(uri)
+        name = uri[len(parsed.scheme) + 3:].split(':')[0]
+        start = time()
+        failed = False
+        try:
+            gethostbyname(name)
+        except Exception:
+            failed = True
+            self.logger.error(('application=dnsmon environment={env} '
+                               'msg=failed to perform DNS resolution '
+                               'name={name}').format(
+                                   env=self.environment, name=name))
+        end = time()
+        rtt = end - start
+        self.logger.info(('application=dnsmon environment={env} '
+                          'start_time={start} end_time={end}'
+                          'time_unit=sec rtt={rtt} failed={failed}').format(
+                              env=self.environment,
+                              start=start,
+                              end=end,
+                              rtt=rtt,
+                              failed=failed))
+        self.logger.debug(('application=dnsmon environment={env} '
+                           'msg=end MonitorClient._dns_resolution').format(
+                               env=self.environment))
+
+    def run(self, perform_dns_resolution_time_logging=False):
         self.logger.debug(('application=restmon environment={env} '
                            'msg=start MonitorClient.run').format(
                                env=self.environment))
+        if perform_dns_resolution_time_logging:
+            self._dns_resolution(uri=self.base_uri)
+
         for endpoint in self.endpoints:
             self.logger.debug(('application=restmon environment={env} '
                                'endpoint={ep} msg=querying endpoint').format(

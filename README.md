@@ -13,5 +13,5 @@ pip install -U restmon
 ```
 #!/bin/sh
 
-/usr/bin/restmon -p password -u user -b http://service_url -e 'api/health1' 'api/health2'
+/usr/bin/restmon --dns -p password -u user -b http://service_url -e 'api/health1' 'api/health2'
 ```

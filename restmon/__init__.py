@@ -18,6 +18,12 @@ def main():
         nargs='+',
         help='API endpoint URIs for monitoring (e.g. api/endpoint1)')
     parser.add_argument(
+        '--dns',
+        '-d',
+        dest='perform_dns_resolution_time_logging',
+        action='store_true',
+        help='Log base URI DNS resolution times')
+    parser.add_argument(
         '--username',
         '-u',
         dest='username',
@@ -29,7 +35,6 @@ def main():
         dest='password',
         nargs='?',
         help='Basic authentication password (optional)')
-
     parser.add_argument(
         '--environment',
         '-n',
@@ -51,4 +56,5 @@ def main():
         environment=args.environment,
         endpoints=args.endpoints,
         auth=auth)
-    client.run()
+    client.run(perform_dns_resolution_time_logging=args.
+               perform_dns_resolution_time_logging)
